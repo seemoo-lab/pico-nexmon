@@ -16,6 +16,7 @@ authors:
 identifiers:
   - type: url
     value: 'https://github.com/seemoo-lab/pico-nexmon'
+url: 'https://github.com/seemoo-lab/pico-nexmon'
 keywords:
   - pico
   - pico w

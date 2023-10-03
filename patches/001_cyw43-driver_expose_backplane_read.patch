@@ -1,0 +1,15 @@
+diff --git a/src/cyw43_ll.c b/src/cyw43_ll.c
+index 604335c..84790ac 100644
+--- a/src/cyw43_ll.c
++++ b/src/cyw43_ll.c
+@@ -343,6 +343,10 @@ static uint32_t cyw43_read_backplane(cyw43_int_t *self, uint32_t addr, size_t si
+     return reg;
+ }
+ 
++uint32_t cyw43_read_backplane_external(cyw43_int_t *self, uint32_t addr, size_t size) {
++    return cyw43_read_backplane(self, addr, size);
++}
++
+ static void cyw43_write_backplane(cyw43_int_t *self, uint32_t addr, size_t size, uint32_t val) {
+     cyw43_set_backplane_window(self, addr);
+     addr &= BACKPLANE_ADDR_MASK;

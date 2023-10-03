@@ -1,0 +1,27 @@
+#!/bin/sh
+
+CYW43_DRIVER_DIR="cyw43-driver"
+PATCH_DIR="patches"
+PATCH_001="$PATCH_DIR/001_cyw43-driver_expose_backplane_read.patch"
+
+# exit on error
+set -e
+
+# change into parent dir
+cd "$(dirname "$0")/.."
+
+# check if cyw43 driver exists
+if ! [ -d $CYW43_DRIVER_DIR ]; then
+    printf "CYW43xx WiFi/BT SoC driver not found, expected: %s/%s\n" $PWD $CYW43_DRIVER_DIR
+    exit 1
+fi
+
+# check if patch 001 exists
+if ! [ -f $PATCH_001 ]; then
+    printf "Patchfile 1 not found, expected: %s\n" $PATCH_001
+    exit 2
+fi
+
+# apply patch 001
+printf "applying patch %s\n" $PATCH_001
+cd $CYW43_DRIVER_DIR && git apply ../$PATCH_001 && cd ..

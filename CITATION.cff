@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "pico-nexmon: Raspberry Pi Pico W Nexmon Applications"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - given-names: Jakob
+    family-names: Link
+    email: jlink@seemoo.tu-darmstadt.de
+    affiliation: Secure Mobile Networking Lab
+    orcid: 'https://orcid.org/0000-0003-1068-6053'
+  - given-names: Matthias
+    family-names: Hollick
+    email: mhollick@seemoo.tu-darmstadt.de
+    affiliation: Secure Mobile Networking Lab
+    orcid: 'https://orcid.org/0000-0002-9163-5989'
+identifiers:
+  - type: url
+    value: 'https://github.com/seemoo-lab/pico-nexmon'
+keywords:
+  - pico
+  - pico w
+  - raspberry pi
+  - 43439A0
+  - nexmon
+  - broadcom
+  - cypress
+  - infineon
+  - rpi
+license: GPL-3.0

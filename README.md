@@ -71,6 +71,28 @@ There are various standard setups that allow working with a Raspberry Pi Pico W.
         ```
         ![](gfx/dump_console_example.gif)
 
+## Quickstart
+We provide scripts that automate the setup of `pico-sdk`, `openocd`, `minicom`, and `nexmon` on Ubuntu 22.04.3 LTS machines. Just copy and paste the following:  
+*We tested the scripts on a VM running [Ubuntu Server 22.04.3 LTS](https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-live-server-amd64.iso). They probably work on other versions and distributions too, but this is up to you to find out.*  
+```
+sudo apt update && \
+sudo apt install -y git && \
+git clone --recursive https://github.com/seemoo-lab/pico-nexmon.git && \
+cd pico-nexmon && \
+./script/patch && \
+./script/setup_pico && \
+./script/setup_nexmon && \
+source ~/.bashrc
+```
+Once the setup is done, you might built all applications by executing the following:
+```
+mkdir build && \
+cd build && \
+cmake .. && \
+make
+```
+For an example on how to use the applications check out step 6 of the [getting started section](#getting-started).
+
 ## Contact
 [Jakob Link](https://www.seemoo.tu-darmstadt.de/team/jlink/) <<jlink@seemoo.tu-darmstadt.de>>
 

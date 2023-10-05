@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# setup nexmon on an Ubuntu machine
+
+set -e
+
+if ! grep -q "Ubuntu 22.04.3 LTS" /etc/issue; then
+    echo "Not running on Ubuntu 22.04.3. Might not work as expected!"
+    read -p "Continue anyways? (y/N): " INPUT_CONTINUE
+    [ -z "$INPUT_CONTINUE" ] || [ "${INPUT_CONTINUE,}" == "n" ] || [ "${INPUT_CONTINUE,,}" == "no" ] && echo "exit" && exit
+fi
+
+# Number of cores when running make
+JNUM=$(nproc)
+
+# Install dependencies
+echo "Installing dependencies"
+DEPS="gawk qpdf adb flex bison build-essential"
+if [[ "$(uname -m | grep -c x86_64)" -eq 1 ]]; then
+    sudo dpkg --add-architecture i386
+    DEPS="$DEPS libc6:i386 libncurses5:i386 libstdc++6:i386"
+fi
+sudo apt update
+sudo apt install -y $DEPS
+
+# Clone nexmon
+DEST="$(pwd)/nexmon"
+REPO_URL="https://github.com/seemoo-lab/nexmon.git"
+echo "Cloning $REPO_URL to $DEST"
+git clone $REPO_URL --depth=1
+
+# Setup nexmon
+cd $DEST
+source setup_env.sh
+make
+
+# Add NEXMON_ROOT to ~/.bashrc
+VARNAME="NEXMON_ROOT"
+echo "Adding $VARNAME to ~/.bashrc"
+echo "export $VARNAME=$DEST" >> ~/.bashrc

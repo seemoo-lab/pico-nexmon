@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# this is an adapted version of https://raw.githubusercontent.com/raspberrypi/pico-setup/master/pico_setup.sh
+# meant to setup pico-sdk, openocd, and minicom on an Ubuntu machine
+
+set -e
+
+if ! grep -q "Ubuntu 22.04.3 LTS" /etc/issue; then
+    echo "Not running on Ubuntu 22.04.3. Might not work as expected!"
+    read -p "Continue anyways? (y/N): " INPUT_CONTINUE
+    [ -z "$INPUT_CONTINUE" ] || [ "${INPUT_CONTINUE,}" == "n" ] || [ "${INPUT_CONTINUE,,}" == "no" ] && echo "exit" && exit
+fi
+
+# Number of cores when running make
+JNUM=$(nproc)
+
+# Where will the output go?
+BASEDIR=$(pwd)
+OUTDIR="$(pwd)/tmp"
+
+# Install dependencies
+SDK_DEPS="cmake gcc-arm-none-eabi gcc g++ libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib"
+OPENOCD_DEPS="pkg-config gdb-multiarch automake autoconf build-essential texinfo libtool libftdi-dev libusb-1.0-0-dev"
+UART_DEPS="minicom"
+
+# Build full list of dependencies
+DEPS="$SDK_DEPS"
+DEPS="$DEPS $OPENOCD_DEPS"
+
+echo "Installing Dependencies"
+sudo apt update
+sudo apt install -y $DEPS
+
+# Clone pico-sdk
+DEST="$(pwd)/pico-sdk"
+REPO_URL="https://github.com/raspberrypi/pico-sdk.git"
+echo "Cloning $REPO_URL to $DEST"
+git clone -b master $REPO_URL
+# get submodules
+cd $DEST
+git submodule update --init
+cd $BASEDIR
+
+# Add PICO_SDK_PATH to ~/.bashrc
+VARNAME="PICO_SDK_PATH"
+echo "Adding $VARNAME to ~/.bashrc"
+echo "export $VARNAME=$DEST" >> ~/.bashrc
+
+# Create tmp directory
+echo "Creating $OUTDIR"
+mkdir -p $OUTDIR
+
+# Build OpenOCD
+echo "Building OpenOCD"
+cd $OUTDIR
+OPENOCD_CONFIGURE_ARGS="--enable-ftdi --enable-sysfsgpio --enable-bcm2835gpio"
+
+git clone https://github.com/raspberrypi/openocd.git -b "rp2040-v0.12.0" --depth=1
+cd openocd
+./bootstrap
+./configure $OPENOCD_CONFIGURE_ARGS
+make -j$JNUM
+sudo make install
+
+cd $BASEDIR
+
+# Remove tmp directory
+echo "Deleting $OUTDIR"
+rm -rf $OUTDIR
+
+# Enable UART
+sudo apt install -y $UART_DEPS

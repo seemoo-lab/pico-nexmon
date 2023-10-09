@@ -7,6 +7,10 @@ add_executable(picow_ioctl_test
                picow_ioctl_test.c
                )
 
+add_dependencies(picow_ioctl_test
+                 nexmon_firmware
+                 )
+
 target_link_libraries(picow_ioctl_test
                       pico_stdlib
                       pico_cyw43_arch_none

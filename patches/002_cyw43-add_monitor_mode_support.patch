@@ -1,0 +1,99 @@
+diff --git a/src/cyw43.h b/src/cyw43.h
+index ee935d2..a6bde0c 100644
+--- a/src/cyw43.h
++++ b/src/cyw43.h
+@@ -149,6 +149,9 @@ typedef struct _cyw43_t {
+     #if CYW43_ENABLE_BLUETOOTH
+     bool bt_loaded;
+     #endif
++
++    uint8_t is_monitor_mode;
++    void (*monitor_mode_cb)(void *, int, size_t, const uint8_t *);
+ } cyw43_t;
+ 
+ extern cyw43_t cyw43_state;
+diff --git a/src/cyw43_ctrl.c b/src/cyw43_ctrl.c
+index edec1f3..de51c89 100644
+--- a/src/cyw43_ctrl.c
++++ b/src/cyw43_ctrl.c
+@@ -791,3 +791,23 @@ int cyw43_bluetooth_hci_write(uint8_t *buf, size_t len) {
+     return 0;
+ }
+ #endif
++
++void cyw43_cb_monitor_mode(void *cb_data, int itf, size_t len, const uint8_t *buf) {
++    cyw43_t *self = cb_data;
++    if(self->is_monitor_mode && self->monitor_mode_cb)
++        self->monitor_mode_cb(cb_data, itf, len, buf);
++}
++
++int cyw43_set_monitor_mode(cyw43_t *self, int value, void (*cb)(void *, int, size_t, const uint8_t *)) {
++    CYW43_THREAD_ENTER;
++    int ret = cyw43_ensure_up(self);
++    if (ret) {
++        CYW43_THREAD_EXIT;
++        return ret;
++    }
++    cyw43_ll_set_monitor_mode(&self->cyw43_ll, value);
++    self->is_monitor_mode = value;
++    self->monitor_mode_cb = cb;
++    CYW43_THREAD_EXIT;
++    return 0;
++}
+\ No newline at end of file
+diff --git a/src/cyw43_ll.c b/src/cyw43_ll.c
+index 604335c..d5ba60b 100644
+--- a/src/cyw43_ll.c
++++ b/src/cyw43_ll.c
+@@ -1167,6 +1167,7 @@ void cyw43_ll_process_packets(cyw43_ll_t *self_in) {
+             cyw43_cb_process_async_event(self, cyw43_ll_parse_async_event(len, buf));
+         } else if (ret == DATA_HEADER) {
+             cyw43_cb_process_ethernet(self->cb_data, len >> 31, len & 0x7fffffff, buf);
++            cyw43_cb_monitor_mode(self->cb_data, len >> 31, len & 0x7fffffff, buf);
+         } else if (CYW43_USE_SPI && ret == CYW43_ERROR_WRONG_PAYLOAD_TYPE) {
+             // Ignore this error when using the SPI interface.  It can occur when there
+             // is a lot of traffic over the SPI (eg sending UDP packets continuously)
+@@ -1833,26 +1834,12 @@ static uint32_t cyw43_read_iovar_u32(cyw43_int_t *self, const char *var, uint32_
+     return cyw43_get_le32(buf);
+ }
+ 
+-#if 0
+ #define WLC_SET_MONITOR (108)
+-int cyw43_set_monitor_mode(cyw43_ll_t *self, int value) {
+-    CYW_THREAD_ENTER;
+-    int ret = cyw43_ensure_up(self);
+-    if (ret) {
+-        CYW_THREAD_EXIT;
+-        return ret;
+-    }
+-
+-    CYW_ENTER;
+-    self->is_monitor_mode = value;
+-    cyw43_write_iovar_u32(self, "allmulti", value, WWD_STA_INTERFACE);
+-    cyw43_set_ioctl_u32(self, WLC_SET_MONITOR, value, WWD_STA_INTERFACE);
+-    CYW_EXIT;
+-    CYW_THREAD_EXIT;
+-
+-    return 0;
++void cyw43_ll_set_monitor_mode(cyw43_ll_t *self, int value) {
++    //self->is_monitor_mode = value;
++    cyw43_write_iovar_u32(CYW_INT_FROM_LL(self), "allmulti", value, WWD_STA_INTERFACE);
++    cyw43_set_ioctl_u32(CYW_INT_FROM_LL(self), WLC_SET_MONITOR, value, WWD_STA_INTERFACE);
+ }
+-#endif
+ 
+ // Requires cyw43_ll_bus_init to have been called first
+ int cyw43_ll_wifi_on(cyw43_ll_t *self_in, uint32_t country) {
+diff --git a/src/cyw43_ll.h b/src/cyw43_ll.h
+index 2750238..c98fc08 100644
+--- a/src/cyw43_ll.h
++++ b/src/cyw43_ll.h
+@@ -277,6 +277,8 @@ void cyw43_ll_process_packets(cyw43_ll_t *self);
+ int cyw43_ll_ioctl(cyw43_ll_t *self, uint32_t cmd, size_t len, uint8_t *buf, uint32_t iface);
+ int cyw43_ll_send_ethernet(cyw43_ll_t *self, int itf, size_t len, const void *buf, bool is_pbuf);
+ 
++void cyw43_ll_set_monitor_mode(cyw43_ll_t *self, int value);
++
+ int cyw43_ll_wifi_on(cyw43_ll_t *self, uint32_t country);
+ int cyw43_ll_wifi_pm(cyw43_ll_t *self, uint32_t pm, uint32_t pm_sleep_ret, uint32_t li_bcn, uint32_t li_dtim, uint32_t li_assoc);
+ int cyw43_ll_wifi_get_pm(cyw43_ll_t *self, uint32_t *pm, uint32_t *pm_sleep_ret, uint32_t *li_bcn, uint32_t *li_dtim, uint32_t *li_assoc);

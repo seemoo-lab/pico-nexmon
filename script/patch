@@ -3,6 +3,7 @@
 CYW43_DRIVER_DIR="cyw43-driver"
 PATCH_DIR="patches"
 PATCH_001="$PATCH_DIR/001_cyw43-driver_expose_backplane_read.patch"
+PATCH_002="$PATCH_DIR/002_cyw43-add_monitor_mode_support.patch"
 
 # exit on error
 set -e
@@ -25,3 +26,13 @@ fi
 # apply patch 001
 printf "applying patch %s\n" $PATCH_001
 cd $CYW43_DRIVER_DIR && git apply ../$PATCH_001 && cd ..
+
+# check if patch 002 exists
+if ! [ -f $PATCH_002 ]; then
+    printf "Patchfile 2 not found, expected: %s\n" $PATCH_002
+    exit 2
+fi
+
+# apply patch 002
+printf "applying patch %s\n" $PATCH_002
+cd $CYW43_DRIVER_DIR && git apply ../$PATCH_002 && cd ..

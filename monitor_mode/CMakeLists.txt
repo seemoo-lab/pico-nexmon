@@ -10,8 +10,12 @@ target_link_libraries(picow_monitor_mode
         pico_stdlib
         )
 
-pico_enable_stdio_usb(picow_monitor_mode 1)
-pico_enable_stdio_uart(picow_monitor_mode 0)
+# Ucomment when using NEXMON driver
+# target_compile_definitions(picow_monitor_mode PRIVATE
+#         CYW43_CHIPSET_FIRMWARE_INCLUDE_FILE="${NEXMON_ROOT}/patches/bcm43439a0/7_95_49_2271bb6/nexmon/w43439A0_7_95_49_00_combined.h"
+#         CYW43_WIFI_NVRAM_INCLUDE_FILE="${PICO_NEXMON_PATH}/cyw43-driver/firmware/wifi_nvram_43439.h"
+#         CYW43_ENABLE_BLUETOOTH=0
+#         )
 
 pico_add_extra_outputs(picow_monitor_mode)
 

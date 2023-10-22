@@ -1,5 +1,5 @@
 diff --git a/src/cyw43.h b/src/cyw43.h
-index ee935d2..a6bde0c 100644
+index 0900440..97fcd4e 100644
 --- a/src/cyw43.h
 +++ b/src/cyw43.h
 @@ -149,6 +149,9 @@ typedef struct _cyw43_t {
@@ -12,11 +12,41 @@ index ee935d2..a6bde0c 100644
  } cyw43_t;
  
  extern cyw43_t cyw43_state;
+@@ -678,6 +681,29 @@ int cyw43_bluetooth_hci_write(uint8_t *buf, size_t len);
+ void cyw43_bluetooth_hci_process(void);
+ #endif
+ 
++/**
++ * @brief Callback function to handle monitor mode data.
++ *
++ * @param cb_data   The driver state object.
++ * @param itf       The interface identifier.
++ * @param len       The length of the received data.
++ * @param buf       A pointer to the buffer containing the received data.
++ */
++void cyw43_cb_monitor_mode(void *cb_data, int itf, size_t len, const uint8_t *buf);
++
++/**
++ * @brief Set the monitor mode of the CYW43 device.
++ *
++ * @param self  the driver state object. This should always be \c &cyw43_state
++ * @param value The value to set monitor mode (1 for enabled, 0 for disabled).
++ * @param cb    A callback function to handle monitor mode data.
++ *             The callback should have the signature:
++ *             `void (*cb)(void *, int, size_t, const uint8_t *)`
++ *
++ * @return 0 on success, an error code on failure.
++ */
++int cyw43_set_monitor_mode(cyw43_t *self, int value, void (*cb)(void *, int, size_t, const uint8_t *));
++
+ //!\} // cyw43_driver doxygen group
+ 
+ #endif // CYW43_INCLUDED_CYW43_H
 diff --git a/src/cyw43_ctrl.c b/src/cyw43_ctrl.c
-index edec1f3..de51c89 100644
+index dde5ca7..fb28519 100644
 --- a/src/cyw43_ctrl.c
 +++ b/src/cyw43_ctrl.c
-@@ -791,3 +791,23 @@ int cyw43_bluetooth_hci_write(uint8_t *buf, size_t len) {
+@@ -794,3 +794,23 @@ int cyw43_bluetooth_hci_write(uint8_t *buf, size_t len) {
      return 0;
  }
  #endif
@@ -42,7 +72,7 @@ index edec1f3..de51c89 100644
 +}
 \ No newline at end of file
 diff --git a/src/cyw43_ll.c b/src/cyw43_ll.c
-index 604335c..d5ba60b 100644
+index 11fb696..7e10b8d 100644
 --- a/src/cyw43_ll.c
 +++ b/src/cyw43_ll.c
 @@ -1167,6 +1167,7 @@ void cyw43_ll_process_packets(cyw43_ll_t *self_in) {
@@ -53,7 +83,7 @@ index 604335c..d5ba60b 100644
          } else if (CYW43_USE_SPI && ret == CYW43_ERROR_WRONG_PAYLOAD_TYPE) {
              // Ignore this error when using the SPI interface.  It can occur when there
              // is a lot of traffic over the SPI (eg sending UDP packets continuously)
-@@ -1833,26 +1834,12 @@ static uint32_t cyw43_read_iovar_u32(cyw43_int_t *self, const char *var, uint32_
+@@ -1838,26 +1839,12 @@ static uint32_t cyw43_read_iovar_u32(cyw43_int_t *self, const char *var, uint32_
      return cyw43_get_le32(buf);
  }
  

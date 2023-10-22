@@ -46,6 +46,7 @@ if (PICO_CYW43_SUPPORTED)
         # specific projects in subdirectories
         add_subdirectory(dump_rom)
         add_subdirectory(dump_console)
+        add_subdirectory(monitor_mode)
         if(NOT DEFINED NO_NEXMON)
             add_subdirectory(ioctl_test)
         else()

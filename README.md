@@ -7,6 +7,7 @@ App|Description
 ---|---
 [dump_rom<sup>1</sup>](dump_rom) | Read ROM content from WLAN SoC and hex dump it to Pico's console.
 [dump_console<sup>1</sup>](dump_console) | Read WLAN SoC's ARM core internal console and dump it to Pico's console.
+[monitor_mode<sup>1</sup>](monitor_mode) | Enable monitor mode and provide a callback for sniffing packets
 [ioctl_test<sup>2</sup>](ioctl_test) | Write string via IOCTL to SoC's internal console, read back internal console, and dump it to Pico's console.
 
 <sup>1</sup> Works with unmodified firmware provided by [cyw43-driver](https://github.com/georgerobotics/cyw43-driver).  
